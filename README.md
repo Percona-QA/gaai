@@ -10,5 +10,7 @@ git clone --depth=1 https://github.com/Percona-QA/percona-qa.git  # GPLv2
 ```
 
 Download a tarball version of Percona Server, unpack it in some directory, cd (change dir) to the same, and run startup:
-  cd /your_unpacked_tarball_dir
-  ~/percona-qa/startup.sh  # This will create some handy scripts to use
+```
+cd /your_unpacked_tarball_dir
+~/percona-qa/startup.sh  # This will create some handy scripts to use
+```
