@@ -1,6 +1,6 @@
-# Gaai - Artificial Intelligence Database Performance Tuning #
+# gaai - Artificial Intelligence Database Performance Tuning #
 
-Gaai automatically tunes a MySQL database for highest performance as measured by tps (transactions per second) using an artificial intelligence genetic algorithm
+gaai automatically tunes a MySQL database for highest performance as measured by tps (transactions per second) using an artificial intelligence genetic algorithm
 
 Setup/Prereq:
 ```
