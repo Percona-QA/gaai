@@ -13,4 +13,9 @@ Download a tarball version of Percona Server, unpack it in some directory, cd (c
 ```
 cd /your_unpacked_tarball_dir
 ~/percona-qa/startup.sh  # This will create some handy scripts to use
+
+
+sysbench 
+https://www.percona.com/doc/percona-repo-config/apt-repo.html
 ```
+

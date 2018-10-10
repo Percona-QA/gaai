@@ -1,0 +1,5 @@
+DROP DATABASE IF EXISTS test;
+CREATE DATABASE test;
+USE test;
+CREATE TABLE t1 (c1 int);
+CREATE TABLE t2 (c1 int);
