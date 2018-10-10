@@ -1,7 +1,7 @@
 #!/bin/bash
 # Created by Roel Van de Paar, Percona LLC
 
-BASEDIR=/sda/MS050918-mysql-5.7.23-linux-x86_64-debug
+BASEDIR=/dev/shm/MS210818-mysql-8.0.12-linux-x86_64-opt  # Must be in /dev/shm (tmps) or ramfs to eliminte disk I/O & high latency
 PERCONAQADIR=/home/roel/percona-qa
 
 if [ ! -r $PERCONAQADIR/startup.sh ]; then
@@ -22,9 +22,15 @@ if [ "$(which sysbench)" == "" ]; then
   exit 1
 fi
 
+# Server startup
 SOURCEDIR=${PWD}
 cd $BASEDIR
 ./stop 2>/dev/null
-$PERCONAQADIR/
+$PERCONAQADIR/startup.sh
+./start
 
-sysbench ${SOURCEDIR}/gaai2.lua --sql_file=${PWD}/gaai.sql --mysql-db=test --mysql-user=root --db-driver=mysql --mysql-ignore-errors=all --threads=100 --mysql-socket=/sda/MS050918-mysql-5.7.23-linux-x86_64-debug/socket.sock run
+# SQL Init/setup
+${BASEDIR}/bin/mysql -A -uroot -S${BASEDIR}/socket.sock --force --binary-mode test < ${SOURCEDIR}/gaai_init.sql #> /tmp/gaai_init.log 2>&1
+
+# SQL Run (sysbench)
+sysbench ${SOURCEDIR}/gaai.lua --sql_file=${SOURCEDIR}/gaai.sql --mysql-db=test --mysql-user=root --db-driver=mysql --mysql-ignore-errors=all --threads=100 --time=0 --thread-stack-size=64K --verbosity=3 --percentile=95 --report-interval=1 --mysql-socket=${BASEDIR}/socket.sock run
