@@ -7,7 +7,7 @@
 
 #BASEDIR=/sdc/MS101018-mysql-5.7.23-linux-x86_64-opt
 BASEDIR=/dev/shm/MS101018-mysql-5.7.23-linux-x86_64-opt
-PERCONAQADIR=../percona-qa
+PERCONAQADIR=/home/roel/percona-qa
 REPORT_INTERVAL=2
 TABLESIZE=1000000  # 10000000
 NROFTABLES=4       # 10
@@ -32,7 +32,7 @@ if [ "$(which sysbench)" == "" ]; then
   exit 1
 fi
 
-if [ "$(which script)" == "" ]; then
+if [ "$(echo $(which script))" == "" ]; then
   echo "Assert: could not locate the Linux script/typescript utility. Please install the util-linux package as follows:"
   echo "sudo apt-get install util-linux   # or yum equivalent"
   exit 1
@@ -59,5 +59,6 @@ sysbench /usr/share/sysbench/oltp_insert.lua --mysql-storage-engine=innodb --tab
 rm -f gaai-sb.log
 script -q -f gaai-sb.log -c "./gaai-sb.sh ${REPORT_INTERVAL} ${THREADS} ${TABLESIZE} ${NROFTABLES} ${BASEDIR} gaai-sb" &
 
-# Genetic Algorithm Artificial Intelligence Database Performance Tuning
-#./gaai.lua
+# Genetic Algorithm Artificial Intelligence Database Performance Tuning  # --mysql-ignore-errors=all
+# This uses sysbench as the lua interpreter only because it makes it easy to connect to the already running MySQL server
+#sysbench ./gaai.lua --mysql-db=test --mysql-user=root --db-driver=mysql --threads=1 --time=0 --verbosity=3 --mysql-socket=${BASEDIR}/socket.sock run

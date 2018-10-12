@@ -1,1 +1,1 @@
-ps -ef | grep './gaai-sb' | grep -v grep | grep bash | awk '{print $2}' | xargs kill -9
+ps -ef | grep 'gaai' | grep -vE "grep|vi " | awk '{print $2}' | xargs kill -9

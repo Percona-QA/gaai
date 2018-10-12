@@ -21,7 +21,7 @@ MID_CHROMOSOME_LENGTH    = math.ceil(CHROMOSOME_LENGTH/2)
 
 math.randomseed(os.time()*os.clock())  -- Random entropy pool init
 
-local function randit()
+local function randit(gene)  -- gene is not used in this example, but it can be used to give specific ranges to each indivdual gene
   return math.random(0,EXPECTED_RESULT/CHROMOSOME_LENGTH)  -- Randum number from 0 to EXPECTED_RESULT divided by number of genes
 end
 
@@ -29,19 +29,19 @@ local function choice(t)
   return t[math.random(1,#t)]  -- Return a random element from a table
 end
 
-local function get_random_individual()
+local function create_random_individual()
   -- Return table of @CHROMOSOME_LENGTH
   local chromosome = {}
   for i = 1, CHROMOSOME_LENGTH do
-     chromosome[i] = randit()   -- Set the genes one by one, creating an indvidual (i.e. a chromosome)
+     chromosome[i] = randit(i)   -- Set the genes one by one, creating an indvidual (i.e. a chromosome)
   end
   return chromosome
 end
 
-local function get_random_population()  -- Return table of @POPULATION_COUNT table of @CHROMOSOME_LENGTH 
+local function create_random_population()  -- Return table of @POPULATION_COUNT table of @CHROMOSOME_LENGTH 
   local population = {}
   for i = 0, POPULATION_COUNT do
-    population[i] = get_random_individual()
+    population[i] = create_random_individual()
   end
   return population
 end
@@ -128,8 +128,8 @@ local function evolve_population (population)
   -- Mutate some individuals (due to the code optimization above the parents+new children are in the parents array)
   for i=1,#parents do
     if math.random() < MUTATION_CHANCE then
-      local gene_to_modify = choice(parents[i])
-      parents[i][gene_to_modify]=randit()
+      local gene_to_modify = math.random(1,CHROMOSOME_LENGTH)
+      parents[i][gene_to_modify]=randit(gene_to_modify)
     end
   end
 
@@ -147,7 +147,7 @@ end
 
 local function main ()
   -- Main loop and print result
-  local population = get_random_population()
+  local population = create_random_population()
   local graded_population
   local actual_generation = 0
   local average_grade = false

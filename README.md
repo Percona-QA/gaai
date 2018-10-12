@@ -31,6 +31,12 @@ vi gaai.sh   # Edit variables like BASEDIR (point it to the extracted tarball di
 ./gaai.sh
 ```
 
+Stopping gaai
+```
+CTRL+C the running process, then execute
+./gaai-stop.sh   # Or simply execute this from another shell session
+```
+
 Thank you credits
 * Percona, the great company I work for
 * My Family, for always allowing me time
