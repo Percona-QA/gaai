@@ -279,12 +279,12 @@ end
 
 -- Sysbench init
 function thread_init(thread_id)
-  sleep(sleep_time)    -- Warmup time
   -- print(thread_id)  -- 0
 end
 
 -- Sysbench run event
 function event(thread_id)
+  sleep(sleep_time)    -- Warmup time
   -- print(thread_id)  -- 0
   local population=create_random_population()
   local graded_population

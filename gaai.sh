@@ -9,10 +9,10 @@
 BASEDIR=/dev/shm/MS101018-mysql-5.7.23-linux-x86_64-opt
 PERCONAQADIR=/home/roel/percona-qa
 REPORT_INTERVAL=1
-WARMUP_TIME=20     # In seconds
+WARMUP_TIME=60     # In seconds
 MEASURE_DELAY=5    # In seconds, delay per-individual before taking qps sample
 TABLESIZE=1000000
-NROFTABLES=5
+NROFTABLES=4
 THREADS=5
 MYSQLD_PRECONFIG="--innodb-buffer-pool-size=5242880 --table-open-cache=1 --innodb-io-capacity=100 --innodb-io-capacity-max=100000 --innodb-thread-concurrency=1 --innodb-concurrency-tickets=1 --innodb-flush-neighbors=2 --innodb-log-write-ahead-size=512 --innodb-lru-scan-depth=100 --innodb-random-read-ahead=1 --innodb-read-ahead-threshold=0 --innodb-commit-concurrency=1 --innodb-change-buffer-max-size=0 --innodb-change-buffering=none"
 
