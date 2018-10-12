@@ -161,7 +161,7 @@ local function get_individual_result(individual)
     io.input(qpsfile)
     qps=io.read("*all")
     io.close(qpsfile)
-    if qps == "" then qps=0
+    if qps == "" then qps=0 end
     if qps > best_qps then
       writebestqps(individual,qps)
       best_qps=qps
@@ -170,7 +170,7 @@ local function get_individual_result(individual)
     io.input(timefile)
     time=io.read("*all")
     io.close(timefile)
-    if time == "" then time=0
+    if time == "" then time=0 end
     if (qps==0 or time==0) then
       log("Error: qps==0 and time==0, retrying to read gaai.qps and gaai.time, please check disk/run status")
     end
