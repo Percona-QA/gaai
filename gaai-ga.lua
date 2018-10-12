@@ -179,7 +179,7 @@ local function get_individual_result(individual)
 end
 
 -- Evaluate the fitness of an individual and return it
-local function get_individual_fitness(individual,individual_nr,regrading=0)
+local function get_individual_fitness(individual,individual_nr,regrading)
   local result,time=get_individual_result(individual)
   regrading_text=
   if regrading==1 then regrading_text=" (regrading)"
@@ -206,7 +206,7 @@ end
 
 local function evolve_population (population)
   -- Select almost best and a few random individual, crossover and mutate them
-  local graded_population=grade_population(population)
+  local graded_population=grade_population(population,0)
 
   -- Select individuals to retain/reproduce in new generation
   local parents={}
@@ -291,7 +291,7 @@ function event(thread_id)
   local average_grade=false
   -- Main loop and print result
   while (generation_count <= GENERATION_COUNT) do
-    population, average_grade, graded_population=evolve_population(population,generation_count)
+    population, average_grade, graded_population=evolve_population(population)
     log('['..generation_count.." gen] - Average grade : "..average_grade.." (best:".. graded_population[1][2] .."|worst:".. graded_population[#graded_population][2] ..")")
     generation_count=generation_count + 1
   end

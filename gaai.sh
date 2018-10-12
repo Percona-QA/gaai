@@ -56,7 +56,9 @@ ulimit -n 10000
 
 # Cleanup
 rm -f gaai-sb.log.old gaai.qps gaai.time gaai-ga.log gaai.best
-mv gaai-sb.log gaai-sb.log.old
+if [ -r gaai-sb.log ] then
+  mv gaai-sb.log gaai-sb.log.old
+fi
 
 # Sysbench Prepare (creates tables)
 sysbench /usr/share/sysbench/oltp_insert.lua --mysql-storage-engine=innodb --table-size=${TABLESIZE} --tables=${NROFTABLES} --mysql-db=test --mysql-user=root --db-driver=mysql --mysql-socket=${BASEDIR}/socket.sock prepare
