@@ -10,6 +10,7 @@ BASEDIR=/dev/shm/MS101018-mysql-5.7.23-linux-x86_64-opt
 PERCONAQADIR=/home/roel/percona-qa
 REPORT_INTERVAL=1
 WARMUP_TIME=20     # In seconds
+MEASURE_DELAY=5    # In seconds, delay per-individual before taking qps sample
 TABLESIZE=1000000
 NROFTABLES=5
 THREADS=5
@@ -65,4 +66,4 @@ script -q -f gaai-sb.log -c "./gaai-sb.sh ${REPORT_INTERVAL} ${THREADS} ${TABLES
 
 # Genetic Algorithm Artificial Intelligence Database Performance Tuning (actual optimization using gaai.qps as input for the GA)
 # This uses sysbench as the lua interpreter only which makes it easy to connect to the already running MySQL server
-sysbench ./gaai-ga.lua --sleep_time=${WARMUP_TIME} --mysql-db=test --mysql-user=root --db-driver=mysql --threads=1 --time=0 --verbosity=3 --mysql-socket=${BASEDIR}/socket.sock run
+sysbench ./gaai-ga.lua --sleep_time=${WARMUP_TIME} --measure_delay=${MEASURE_DELAY} --mysql-db=test --mysql-user=root --db-driver=mysql --threads=1 --time=0 --verbosity=3 --mysql-socket=${BASEDIR}/socket.sock run

@@ -17,6 +17,7 @@ FAST_CONVERGENCE        =true     -- Fast convergence is ideal for intensive/slo
 GRADED_RETAIN_COUNT=POPULATION_COUNT * GRADED_RETAIN_PERCENT  -- Graded (sorted) retain count (% to actual number)
 MID_CHROMOSOME_LENGTH=math.ceil(CHROMOSOME_LENGTH/2)
 generation_count=1
+optimization_cycle=0  -- Keeps track of whetter we are re-testing individual fitnesses after a population has been evaluated
 best_qps=0  -- Simple var to keep track of best qps ever seen, it is not part of the Genetic Algorithm. For gaai.best creation
 
 math.randomseed(os.time()*os.clock())  -- Random entropy pool init
@@ -32,7 +33,7 @@ end
 local function writebestqps(individual,qps)
   local bestfile=assert(io.open("gaai.best","a"))
   io.output(bestfile)
-  io.write("Best individual has "..qps.." qps (queries per second), with the following settings:\n")
+  io.write("Currently the best individual has "..qps.." qps (queries per second), with the following mysqld settings:\n")
   for gene=1, CHROMOSOME_LENGTH do
     prefix="SET @@GLOBAL."
     if     gene==1  then query=prefix.."innodb_buffer_pool_size="..individual[gene]..";"
@@ -59,8 +60,9 @@ local function writebestqps(individual,qps)
       end
     else log('Assert: gene is not between 1 and 13: gene='..gene); os.exit()
     end
-    io.write(query)
+    io.write(query..' ')
   end
+  io.write('\n\n')
   io.close(bestfile)
 end
 
@@ -119,7 +121,7 @@ local function create_random_population()  -- Return table of @POPULATION_COUNT 
   return population
 end
 
-local function get_individual_solution(individual)
+local function get_individual_result(individual)
   for gene=1, CHROMOSOME_LENGTH do  -- One by one, set each mysqld setting using the genes of the individual for testing
     prefix="SET @@GLOBAL."
     if     gene==1  then query=prefix.."innodb_buffer_pool_size="..individual[gene]..";"
@@ -150,42 +152,53 @@ local function get_individual_solution(individual)
     -- print(query)  -- Debugging
   end
   -- Now that all genes are set, wait 7 seconds before measuring current service performance
-  sleep(7)
-  os.execute("./gaai-wd.sh gaai-wd")
-  local qpsfile=assert(io.open("gaai.qps","r"))
-  io.input(qpsfile)
-  qps=io.read("*number")
-  io.close(qpsfile)
-  if qps > best_qps then
-    writebestqps(individual,qps)
-    best_qps=qps
+  sleep(measure_delay)
+  qps=0
+  time=0
+  while (qps==0 or time==0) do
+    os.execute("./gaai-wd.sh gaai-wd")
+    local qpsfile=assert(io.open("gaai.qps","r"))
+    io.input(qpsfile)
+    qps=io.read("*all")
+    io.close(qpsfile)
+    if qps == "" then qps=0
+    if qps > best_qps then
+      writebestqps(individual,qps)
+      best_qps=qps
+    end
+    local timefile=assert(io.open("gaai.time","r"))
+    io.input(timefile)
+    time=io.read("*all")
+    io.close(timefile)
+    if time == "" then time=0
+    if (qps==0 or time==0) then
+      log("Error: qps==0 and time==0, retrying to read gaai.qps and gaai.time, please check disk/run status")
+    end
   end
-  local timefile=assert(io.open("gaai.time","r"))
-  io.input(timefile)
-  time=io.read("*number")
-  io.close(timefile)
   return qps,time  -- the outcome of this configuration
 end
 
 -- Evaluate the fitness of an individual and return it
-local function get_individual_fitness(individual,individual_nr)
-  local solution,time=get_individual_solution(individual)
-  log('Generation: '..generation_count..' | Individual: '..individual_nr..'/'..POPULATION_COUNT..' | Outcome: '..solution..' | Time: '..time..'s')
-  local offset=math.abs(EXPECTED_RESULT-solution)
+local function get_individual_fitness(individual,individual_nr,regrading=0)
+  local result,time=get_individual_result(individual)
+  regrading_text=
+  if regrading==1 then regrading_text=" (regrading)"
+  log('Generation: '..generation_count..regrading_text..' | Individual: '..individual_nr..'/'..POPULATION_COUNT..' | Outcome: '..result..' | Time: '..time..'s')
+  local offset=math.abs(EXPECTED_RESULT-result)
   if offset==0 then
-    return 1  -- Perfect solution, there is no offset (and div-by-0 is not possible)
+    return 1  -- Perfect result, there is no offset (and div-by-0 is not possible)
   else
     return 1/offset  -- Return a value between almost-0 to almost-1 where 0 is worst and 1 is best
   end
 end
 
-local function grade_population(population)
+local function grade_population(population,regrading)  -- 2nd var is just for output to indicate whetter we are regrading or not
   -- Evaluate fitness of population
   local graded_population={}
   for individual=1,#population do
     graded_population[individual]={}
     graded_population[individual][1]=population[individual]
-    graded_population[individual][2]=get_individual_fitness(population[individual],individual)  -- 2nd: just passing the counter for detailed output, can be removed if log() (i.e. the output) in get_individual_fitness is removed
+    graded_population[individual][2]=get_individual_fitness(population[individual],individual,regrading)  -- 2nd/3rd var: just passing the counter and status for nice/detailed output, can be removed if log() (i.e. the output) in get_individual_fitness is removed
   end
   table.sort(graded_population, function(a,b) return a[2] > b[2] end)
   return graded_population
@@ -211,29 +224,29 @@ local function evolve_population (population)
   local desired_len=POPULATION_COUNT - #parents
   local children={}
   while (#children < desired_len) do
-      local child={}
-      local father=choice(parents)
-      local mother=choice(parents)
-      if father ~= mother then  -- father is not same individual as mother
-        local parents={father, mother}
-        if FAST_CONVERGENCE then
-          -- Mix genes of the child to one-by-one be those of either parent as selected randomly (leads to fast convergence)
-          for gene=1,CHROMOSOME_LENGTH do
-            table.insert(child, parents[math.random(1,2)][gene])
-          end
-        else
-          -- Mix genes of child by taking half of father and half of mother, randomly first half or second half of their genes
-          local a=math.random(1,2)
-          local b=(function() if c==1 then return 2 else return 1 end end)()
-          for gene=1,MID_CHROMOSOME_LENGTH do
-            table.insert(child, parents[a][gene])
-          end
-          for gene=MID_CHROMOSOME_LENGTH,CHROMOSOME_LENGTH do
-            table.insert(child, parents[b][gene])
-          end
+    local child={}
+    local father=choice(parents)
+    local mother=choice(parents)
+    if father ~= mother then  -- father is not same individual as mother
+      local parents={father, mother}
+      if FAST_CONVERGENCE then
+        -- Mix genes of the child to one-by-one be those of either parent as selected randomly (leads to fast convergence)
+        for gene=1,CHROMOSOME_LENGTH do
+          table.insert(child, parents[math.random(1,2)][gene])
         end
-        table.insert(children, child)
+      else
+        -- Mix genes of child by taking half of father and half of mother, randomly first half or second half of their genes
+        local a=math.random(1,2)
+        local b=(function() if c==1 then return 2 else return 1 end end)()
+        for gene=1,MID_CHROMOSOME_LENGTH do
+          table.insert(child, parents[a][gene])
+        end
+        for gene=MID_CHROMOSOME_LENGTH,CHROMOSOME_LENGTH do
+          table.insert(child, parents[b][gene])
+        end
       end
+      table.insert(children, child)
+    end
   end
 
   -- As a code optimization, instead of defining a new_population array or similar, just add the children to the parents array
@@ -250,7 +263,10 @@ local function evolve_population (population)
   end
 
   -- Regrade the entire population (due to the code optimization above the parents+new children are in the parents array)
-  graded_population=grade_population(parents)
+  -- Perhaps this can be optimized by caching qps fitness results in individual[0] for those which are not mutated nor are new children
+  -- Then there could be a individual[-1] which could act as a flag 'mutated/new child'. Those have to be regraded
+  -- The only ones that could be cached are the ones which are not changed
+  graded_population=grade_population(parents,1)
 
   local average_grade=0
   for individual=1,#graded_population do
@@ -279,8 +295,8 @@ function event(thread_id)
     log('['..generation_count.." gen] - Average grade : "..average_grade.." (best:".. graded_population[1][2] .."|worst:".. graded_population[#graded_population][2] ..")")
     generation_count=generation_count + 1
   end
-  local solution,time=get_individual_solution(graded_population[1][1])
-  log('-- Top solution -> '..solution..' qps after '..time..'s runtime')
+  local result,time=get_individual_result(graded_population[1][1])
+  log('-- Top result -> '..result..' qps after '..time..'s runtime')
   log('Run took '..os.clock()..'s')
   os.exit()
 end
