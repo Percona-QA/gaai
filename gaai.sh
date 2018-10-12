@@ -52,17 +52,17 @@ cd ${SOURCEDIR}
 ulimit -u 10000
 ulimit -n 10000
 
-# Sysbench Prepare
+# Sysbench Prepare (creates tables)
 sysbench /usr/share/sysbench/oltp_insert.lua --mysql-storage-engine=innodb --table-size=${TABLESIZE} --tables=${NROFTABLES} --mysql-db=test --mysql-user=root --db-driver=mysql --mysql-socket=${BASEDIR}/socket.sock prepare
 
-# Sysbench Run in background, logging output to gaai-sb.log which is used for optimization
+# Setup Background Sysbench Run (writes qps output ever ${REPORT_INTERVAL} seconds to gaai-sb.log in sysbench output format)
 rm -f gaai-sb.log
 script -q -f gaai-sb.log -c "./gaai-sb.sh ${REPORT_INTERVAL} ${THREADS} ${TABLESIZE} ${NROFTABLES} ${BASEDIR} gaai-sb" &
 
-# Setup watchdog
+# Setup Background Watchdog (reads gaai-sb.log generated above and writes last (i.e. approximately current) qps status to gaai.qps)
 rm -f gaai.qps
-./watchdog.sh
+./gaai-wd.sh gaai-wd &
 
-# Genetic Algorithm Artificial Intelligence Database Performance Tuning  # --mysql-ignore-errors=all
+# Genetic Algorithm Artificial Intelligence Database Performance Tuning (actual optimization using gaai.qps as input for the GA)
 # This uses sysbench as the lua interpreter only because it makes it easy to connect to the already running MySQL server
 #sysbench ./gaai.lua --mysql-db=test --mysql-user=root --db-driver=mysql --threads=1 --time=0 --verbosity=3 --mysql-socket=${BASEDIR}/socket.sock run
