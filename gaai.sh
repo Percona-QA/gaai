@@ -56,7 +56,7 @@ ulimit -n 10000
 
 # Cleanup
 rm -f gaai-sb.log.old gaai.qps gaai.time gaai-ga.log gaai.best
-if [ -r gaai-sb.log ] then
+if [ -r gaai-sb.log ]; then
   mv gaai-sb.log gaai-sb.log.old
 fi
 

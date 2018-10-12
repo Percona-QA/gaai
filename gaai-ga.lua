@@ -181,7 +181,7 @@ end
 -- Evaluate the fitness of an individual and return it
 local function get_individual_fitness(individual,individual_nr,regrading)
   local result,time=get_individual_result(individual)
-  regrading_text=
+  regrading_text=""
   if regrading==1 then regrading_text=" (regrading)"
   log('Generation: '..generation_count..regrading_text..' | Individual: '..individual_nr..'/'..POPULATION_COUNT..' | Outcome: '..result..' | Time: '..time..'s')
   local offset=math.abs(EXPECTED_RESULT-result)
