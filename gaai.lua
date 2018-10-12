@@ -19,32 +19,6 @@ MID_CHROMOSOME_LENGTH=math.ceil(CHROMOSOME_LENGTH/2)
 
 math.randomseed(os.time()*os.clock())  -- Random entropy pool init
 
--- Sysbench init
-function thread_init(thread_id)
-  print("init!") 
-end
-
--- Sysbench run event
-function event(thread_id)
-  db_query("SELECT 1")
-end
-
-local function main()
-  -- Main loop and print result
-  local population=create_random_population()
-  local graded_population
-  local actual_generation=0
-  local average_grade=false
-  while (actual_generation < GENERATION_COUNT) do
-    population, average_grade, graded_population=evolve_population(population)
-    actual_generation=actual_generation + 1
-    print('[' .. actual_generation .. " gen] - Average grade : " .. average_grade .. " (best:".. graded_population[1][2] .."|worst:".. graded_population[#graded_population][2] ..")")
-  end
-
-  print('-- Top solution -> ' .. EXPECTED_RESULT .. '=' .. get_individual_solution(graded_population[1][1]))
-  print('Run took '..os.clock().."s")
-end
-
 local function randit(gene)
   -- Genes list
 
@@ -209,5 +183,30 @@ local function evolve_population (population)
   average_grade=average_grade / POPULATION_COUNT
 
   return parents, average_grade, graded_population
+end
+
+-- Sysbench init
+function thread_init(thread_id)
+  -- print(thread_id)  # 0
+end
+
+-- Sysbench run event
+function event(thread_id)
+  -- print(thread_id)  # 0
+  local population=create_random_population()
+  local graded_population
+  local actual_generation=0
+  local average_grade=false
+  -- db_query("SELECT 1")
+  -- Main loop and print result
+  while (actual_generation < GENERATION_COUNT) do
+    population, average_grade, graded_population=evolve_population(population)
+    actual_generation=actual_generation + 1
+    print('[' .. actual_generation .. " gen] - Average grade : " .. average_grade .. " (best:".. graded_population[1][2] .."|worst:".. graded_population[#graded_population][2] ..")")
+  end
+
+  print('-- Top solution -> ' .. EXPECTED_RESULT .. '=' .. get_individual_solution(graded_population[1][1]))
+  print('Run took '..os.clock().."s")
+  os.exit()
 end
 

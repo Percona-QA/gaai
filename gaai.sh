@@ -59,6 +59,10 @@ sysbench /usr/share/sysbench/oltp_insert.lua --mysql-storage-engine=innodb --tab
 rm -f gaai-sb.log
 script -q -f gaai-sb.log -c "./gaai-sb.sh ${REPORT_INTERVAL} ${THREADS} ${TABLESIZE} ${NROFTABLES} ${BASEDIR} gaai-sb" &
 
+# Setup watchdog
+rm -f gaai.qps
+./watchdog.sh
+
 # Genetic Algorithm Artificial Intelligence Database Performance Tuning  # --mysql-ignore-errors=all
 # This uses sysbench as the lua interpreter only because it makes it easy to connect to the already running MySQL server
 #sysbench ./gaai.lua --mysql-db=test --mysql-user=root --db-driver=mysql --threads=1 --time=0 --verbosity=3 --mysql-socket=${BASEDIR}/socket.sock run
