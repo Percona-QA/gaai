@@ -1,6 +1,6 @@
 # gaai - Artificial Intelligence Database Performance Tuning #
 
-gaai automatically tunes a MySQL or Percona database server for highest performance as measured by qps (queries per second) using an artificial intelligence genetic algorithm. 
+gaai automatically tunes a MySQL or Percona database server for highest performance as measured by qps (queries per second) using an Artificial Intelligence Genetic Algorithm. 
 
 While currently it has the size of a large proof of concept, and is not directly meant for further develpoment, it could easily be expanded to become a full fledged tuner if one wanted to do so. My hope instead is that code similar to this will be added to the MySQL or Percona server and in time grow to cover many (towards 'all') variables for automatic tuning. The GA engine itself can likely also be further improved by using more advanced Gentic Algorithms.
 
@@ -23,3 +23,8 @@ Configure sysbench
 # Setup the Percona repo from https://www.percona.com/doc/percona-repo-config/apt-repo.html
 sudo apt-get install sysbench   # or yum equivalent
 ```
+
+Thank you credits
+* Percona, the great company I work for
+* My Family, for always allowing me time
+* My Heavenly Father, for all I have and am
