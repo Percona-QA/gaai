@@ -7,7 +7,7 @@
 
 #BASEDIR=/sdc/MS101018-mysql-5.7.23-linux-x86_64-opt
 BASEDIR=/dev/shm/MS101018-mysql-5.7.23-linux-x86_64-opt
-PERCONAQADIR=/home/roel/percona-qa
+PERCONAQADIR=../percona-qa
 REPORT_INTERVAL=2
 TABLESIZE=1000000  # 10000000
 NROFTABLES=4       # 10

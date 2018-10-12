@@ -24,6 +24,13 @@ Configure sysbench
 sudo apt-get install sysbench   # or yum equivalent
 ```
 
+Start gaai
+```
+cd ~/gaai
+vi gaai.sh   # Edit variables like BASEDIR (point it to the extracted tarball directory above) and PERCONAQADIR (likely percona-qa in your home directory if you followed the instructions)
+./gaai.sh
+```
+
 Thank you credits
 * Percona, the great company I work for
 * My Family, for always allowing me time
