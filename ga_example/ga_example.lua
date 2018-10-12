@@ -40,7 +40,7 @@ end
 
 local function create_random_population()  -- Return table of @POPULATION_COUNT table of @CHROMOSOME_LENGTH 
   local population = {}
-  for i = 0, POPULATION_COUNT do
+  for i = 1, POPULATION_COUNT do
     population[i] = create_random_individual()
   end
   return population

@@ -37,33 +37,23 @@ local function randit(gene)
   --innodb-change-buffer-max-size(0,50)               -- 0 to 50        (Start: 0   ) Gene:13
   --innodb-change-buffering(none,inserts,deletes,changes,purges,all)    (Start: none) Gene:14 (mapped 0-5)
 
-  if     gene == 1  then return math.random(5242880,1073741824)
-  elseif gene == 2  then return math.random(1048576,268435456)
-  elseif gene == 3  then return math.random(1,100)
-  elseif gene == 4  then return math.random(100,100000)
-  elseif gene == 5  then return math.random(1,20) 
-  elseif gene == 6  then return math.random(1,5000)
-  elseif gene == 7  then return math.random(0,2)
-  elseif gene == 8  then return math.random(512,16384)
-  elseif gene == 9  then return math.random(100,2048)
-  elseif gene == 10 then return math.random(0,1)
-  elseif gene == 11 then return math.random(0,64)
-  elseif gene == 12 then return math.random(1,200)
-  elseif gene == 13 then return math.random(0,50)
-  elseif gene == 14 then return math.random(0,5)  -- Values are stored in decimal here, but when being used, it will use text values
-  else print('Assert: gene is not between 1 and 14: gene=' .. gene)
+  if     gene==1  then return math.random(5242880,1073741824)
+  elseif gene==2  then return math.random(1048576,268435456)
+  elseif gene==3  then return math.random(1,100)
+  elseif gene==4  then return math.random(100,100000)
+  elseif gene==5  then return math.random(1,20) 
+  elseif gene==6  then return math.random(1,5000)
+  elseif gene==7  then return math.random(0,2)
+  elseif gene==8  then return math.random(512,16384)
+  elseif gene==9  then return math.random(100,2048)
+  elseif gene==10 then return math.random(0,1)
+  elseif gene==11 then return math.random(0,64)
+  elseif gene==12 then return math.random(1,200)
+  elseif gene==13 then return math.random(0,50)
+  elseif gene==14 then return math.random(0,5)  -- Values are stored in decimal here, but when being used, it will use text values
+  else print('Assert: gene is not between 1 and 14: gene='..gene); os.exit()
   end
 end
-
---  elseif gene == 14 then 
---    rsel=math.random(0,5)
---    if     rsel == 0 then return 'none'
---    elseif rsel == 1 then return 'inserts'
---    elseif rsel == 2 then return 'deletes'
---    elseif rsel == 3 then return 'changes'
---    elseif rsel == 4 then return 'purges'
---    elseif rsel == 5 then return 'all'
---    end
 
 local function choice(t)
   return t[math.random(1,#t)]  -- Return a random element from a table
@@ -72,32 +62,59 @@ end
 local function create_random_individual()
   -- Return table of @CHROMOSOME_LENGTH
   local chromosome={}
-  for i=1, CHROMOSOME_LENGTH do
-     chromosome[i]=randit(i)   -- Set the genes one by one, creating an indvidual (i.e. a chromosome)
+  for gene=1, CHROMOSOME_LENGTH do
+     chromosome[gene]=randit(gene)   -- Set the genes one by one, creating an indvidual (i.e. a chromosome)
   end
   return chromosome
 end
 
 local function create_random_population()  -- Return table of @POPULATION_COUNT table of @CHROMOSOME_LENGTH 
   local population={}
-  for i=0, POPULATION_COUNT do
-    population[i]=create_random_individual()
+  for individual=1, POPULATION_COUNT do
+    population[individual]=create_random_individual()
   end
   return population
 end
 
 local function get_individual_solution(individual)
-  local solution=0
-  for i=1, CHROMOSOME_LENGTH do
-    solution=solution + individual[i]
+  for gene=1, CHROMOSOME_LENGTH do
+    prefix="SET @@GLOBAL."
+    if     gene==1  then query=prefix.."innodb-buffer-pool-size="..individual[gene]
+    elseif gene==2  then query=prefix.."innodb-buffer-pool-chunk-size="..individual[gene]
+    elseif gene==3  then query=prefix.."table-open-cache="..individual[gene]
+    elseif gene==4  then query=prefix.."innodb-io-capacity="..individual[gene]
+    elseif gene==5  then query=prefix.."innodb-thread-concurrency="..individual[gene]
+    elseif gene==6  then query=prefix.."innodb-concurrency-tickets="..individual[gene]
+    elseif gene==7  then query=prefix.."innodb-flush-neighbors="..individual[gene]
+    elseif gene==8  then query=prefix.."innodb-log-write-ahead-size="..individual[gene]
+    elseif gene==9  then query=prefix.."innodb-lru-scan-depth="..individual[gene]
+    elseif gene==10 then query=prefix.."innodb-random-read-ahead="..individual[gene]
+    elseif gene==11 then query=prefix.."innodb-read-ahead-threshold="..individual[gene]
+    elseif gene==12 then query=prefix.."innodb-commit-concurrency="..individual[gene]
+    elseif gene==13 then query=prefix.."innodb-change-buffer-max-size="..individual[gene]
+    elseif gene==14 then 
+      rsel=individual[i]
+      if     rsel==0 then query=prefix.."innodb-change-buffering=none"
+      elseif rsel==1 then query=prefix.."innodb-change-buffering=inserts"
+      elseif rsel==2 then query=prefix.."innodb-change-buffering=deletes"
+      elseif rsel==3 then query=prefix.."innodb-change-buffering=changes"
+      elseif rsel==4 then query=prefix.."innodb-change-buffering=purges"
+      elseif rsel==5 then query=prefix.."innodb-change-buffering=all"
+      else print('Assert: gene 14 does not have a value between 1 and 5: valuee='..rsel); os.exit()
+      end
+    else print('Assert: gene is not between 1 and 14: gene='..gene); os.exit()
+    end
+    print(query)
   end
+  local solution=0
+  --solution=solution+individual[i]
   return solution
 end
 
 local function get_individual_fitness(individual)  -- Evaluate the fitness of an individual and return it
   local offset=math.abs(EXPECTED_RESULT-get_individual_solution(individual))
-  if offset == 0 then 
-    return 1  -- Perfect solution, there is no offset
+  if offset==0 then 
+    return 1  -- Perfect solution, there is no offset (and div-by-0 is not possible)
   else
     return 1/offset  -- Return a value between almost-0 to almost-1 where 0 is worst and 1 is best
   end 
@@ -106,10 +123,10 @@ end
 local function grade_population(population)
   -- Evaluate fitness of population
   local graded_population={}
-  for i=1,#population do
-    graded_population[i]={}
-    graded_population[i][1]=population[i]
-    graded_population[i][2]=get_individual_fitness(population[i])
+  for individual=1,#population do
+    graded_population[individual]={}
+    graded_population[individual][1]=population[individual]
+    graded_population[individual][2]=get_individual_fitness(population[individual])
   end
   table.sort(graded_population, function(a,b) return a[2] > b[2] end)
   return graded_population
@@ -121,13 +138,13 @@ local function evolve_population (population)
 
   -- Select individuals to retain/reproduce in new generation
   local parents={}
-  for i=1,GRADED_RETAIN_COUNT do
-    table.insert(parents, graded_population[i][1])
+  for individual=1,GRADED_RETAIN_COUNT do
+    table.insert(parents, graded_population[individual][1])
   end
 
-  for i=GRADED_RETAIN_COUNT,#graded_population do
+  for individual=GRADED_RETAIN_COUNT,#graded_population do
     if math.random() < NONGRATED_RETAIN_PERCENT then
-      table.insert(parents, graded_population[i][1])
+      table.insert(parents, graded_population[individual][1])
     end
   end
 
@@ -142,18 +159,18 @@ local function evolve_population (population)
         local parents={father, mother}
         if FAST_CONVERGENCE then
           -- Mix genes of the child to one-by-one be those of either parent as selected randomly (leads to fast convergence)
-          for i=1,CHROMOSOME_LENGTH do
-            table.insert(child, parents[math.random(1,2)][i])
+          for gene=1,CHROMOSOME_LENGTH do
+            table.insert(child, parents[math.random(1,2)][gene])
           end
         else
           -- Mix genes of child by taking half of father and half of mother, randomly first half or second half of their genes
           local a=math.random(1,2)
-          local b=(function() if c == 1 then return 2 else return 1 end end)()
-          for i=1,MID_CHROMOSOME_LENGTH do
-            table.insert(child, parents[a][i])
+          local b=(function() if c==1 then return 2 else return 1 end end)()
+          for gene=1,MID_CHROMOSOME_LENGTH do
+            table.insert(child, parents[a][gene])
           end
-          for i=MID_CHROMOSOME_LENGTH,CHROMOSOME_LENGTH do
-            table.insert(child, parents[b][i])
+          for gene=MID_CHROMOSOME_LENGTH,CHROMOSOME_LENGTH do
+            table.insert(child, parents[b][gene])
           end
         end
         table.insert(children, child)
@@ -161,15 +178,15 @@ local function evolve_population (population)
   end
 
   -- As a code optimization, instead of defining a new_population array or similar, just add the children to the parents array
-  for i=1,#children do
-    table.insert(parents, children[i])
+  for individual=1,#children do
+    table.insert(parents, children[individual])
   end
 
   -- Mutate some individuals (due to the code optimization above the parents+new children are in the parents array)
-  for i=1,#parents do                                          -- For all parents...
-    if math.random() < MUTATION_CHANCE then                    -- That fall within the mutation chance % (usually very small)...
-      local gene_to_modify=math.random(1,CHROMOSOME_LENGTH)  -- Select a random gene to be mutated...
-      parents[i][gene_to_modify]=randit(gene_to_modify)        -- And mutate it
+  for individual=1,#parents do                                    -- For all parents...
+    if math.random() < MUTATION_CHANCE then                       -- That fall within the mutation chance % (usually very small)...
+      local gene_to_modify=math.random(1,CHROMOSOME_LENGTH)       -- Select a random gene to be mutated...
+      parents[individual][gene_to_modify]=randit(gene_to_modify)  -- And mutate it
     end
   end
 
@@ -177,8 +194,8 @@ local function evolve_population (population)
   graded_population=grade_population(parents)
 
   local average_grade=0
-  for i=1,#graded_population do
-    average_grade=average_grade + graded_population[i][2]
+  for individual=1,#graded_population do
+    average_grade=average_grade + graded_population[individual][2]
   end
   average_grade=average_grade / POPULATION_COUNT
 
@@ -202,10 +219,10 @@ function event(thread_id)
   while (actual_generation < GENERATION_COUNT) do
     population, average_grade, graded_population=evolve_population(population)
     actual_generation=actual_generation + 1
-    print('[' .. actual_generation .. " gen] - Average grade : " .. average_grade .. " (best:".. graded_population[1][2] .."|worst:".. graded_population[#graded_population][2] ..")")
+    print('['..actual_generation.." gen] - Average grade : "..average_grade.." (best:".. graded_population[1][2] .."|worst:".. graded_population[#graded_population][2] ..")")
   end
 
-  print('-- Top solution -> ' .. EXPECTED_RESULT .. '=' .. get_individual_solution(graded_population[1][1]))
+  print('-- Top solution -> '..EXPECTED_RESULT..'='..get_individual_solution(graded_population[1][1]))
   print('Run took '..os.clock().."s")
   os.exit()
 end
