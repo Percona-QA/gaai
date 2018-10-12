@@ -9,7 +9,7 @@ MUTATION_CHANCE         =0.05     -- How much % of genes to modify
 GRADED_RETAIN_PERCENT   =0.25     -- How much % to retain after chromosones have been graded (ranked)
 NONGRATED_RETAIN_PERCENT=0.05     -- How much % to retain of random individuals not in the top GRADED_RETAIN_PERCENT retained group
 POPULATION_COUNT        =100      -- Made up individuals (i.e. chromosones) which in turn are made up of genes (i.e. tuning params)
-GENERATION_COUNT        =100      -- How many generations (cycles)
+GENERATION_COUNT        =1000     -- How many generations (cycles). About 10-15 generations will tune a server very well already
 CHROMOSOME_LENGTH       =13       -- How many parameters to tune, i.e. how many genes (note: gene 0-13=14 genes)
 FAST_CONVERGENCE        =true     -- Fast convergence is ideal for intensive/slow optimization issues, but may hit local maxima
 
@@ -24,7 +24,7 @@ local function log(text)
   local logfile=assert(io.open("gaai-ga.log","a"))
   io.output(logfile)
   io.write(text)
-  io.close(qpsfile)
+  io.close(logfile)
 end
 
 local function randit(gene)

@@ -5,9 +5,9 @@ else
     INPUT=$(tail -n1 gaai-sb.log)   # | tr -d '[' | tr -d ']')
     if [ "${INPUT}" != "" ]; then
       TEST=$(echo "${INPUT}" | grep -o "qps")
-      if [ "${TEST}" == "qps" ]; then
+      if [ "${TEST}" != "" ]; then
         TEST=$(echo "${INPUT}" | grep -o "lat")
-        if [ "${TEST}" == "lat" ]; then
+        if [ "${TEST}" != "" ]; then
           break
         fi
       fi
