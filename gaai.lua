@@ -54,6 +54,11 @@ local function randit(gene)
   elseif gene == 10 then return math.random(0,64)
   elseif gene == 11 then return math.random(1,200)
   elseif gene == 12 then return math.random(0,50)
+  elseif gene == 13 then return math.random(0,5)  -- Values are stored in decimal here, but when being used, it will use text values
+  end
+end
+
+
   elseif gene == 13 then 
     rsel = math.random(0,5)
     if     rsel == 0 then return 'none'
@@ -63,8 +68,6 @@ local function randit(gene)
     elseif rsel == 4 then return 'purges'
     elseif rsel == 5 then return 'all'
     end
-  end
-end
 
 local function choice(t)
   return t[math.random(1,#t)]  -- Return a random element from a table

@@ -28,9 +28,17 @@ fi
 if [ "$(which sysbench)" == "" ]; then
   echo "Assert: could not locate sysbench. Best to install it from the Percona Repo like this;"
   echo "1) Configure the Percona Repo following https://www.percona.com/doc/percona-repo-config/apt-repo.html (or yum equivalent)"
-  echo "2) apt-get install sysbench   # or yum equivalent"
+  echo "2) sudo apt-get install sysbench   # or yum equivalent"
   exit 1
 fi
+
+if [ "$(which script)" == "" ]; then
+  echo "Assert: could not locate the Linux script/typescript utility. Please install the util-linux package as follows:"
+  echo "sudo apt-get install util-linux   # or yum equivalent"
+  exit 1
+fi
+
+which script
 
 # Server startup
 SOURCEDIR=${PWD}
@@ -46,5 +54,10 @@ ulimit -n 10000
 # Sysbench Prepare
 sysbench /usr/share/sysbench/oltp_insert.lua --mysql-storage-engine=innodb --table-size=${TABLESIZE} --tables=${NROFTABLES} --mysql-db=test --mysql-user=root --db-driver=mysql --mysql-socket=${BASEDIR}/socket.sock prepare
 
-# Sysbench Run in background
-sysbench /usr/share/sysbench/oltp_read_write.lua --report-interval=${REPORT_INTERVAL} --time=0 --events=0 --index_updates=10 --non_index_updates=10 --distinct_ranges=15 --order_ranges=15 --threads=${THREADS} --table-size=${TABLESIZE} --tables=${NROFTABLES} --percentile=95 --verbosity=3 --mysql-db=test --mysql-user=root --db-driver=mysql --mysql-socket=${BASEDIR}/socket.sock run
+# Sysbench Run in background, logging output to gaai-sb.log which is used for optimization
+rm -f gaai-sb.log
+script -q -f gaai-sb.log
+./gaai-sb.sh ${REPORT_INTERVAL} ${THREADS} ${TABLESIZE} ${NROFTABLES} ${BASEDIR} gaai-sb &
+
+# Genetic Algorithm Artificial Intelligence Database Performance Tuning
+./gaai.lua
