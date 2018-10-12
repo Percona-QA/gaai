@@ -159,18 +159,18 @@ local function get_individual_result(individual)
     os.execute("./gaai-wd.sh gaai-wd")
     local qpsfile=assert(io.open("gaai.qps","r"))
     io.input(qpsfile)
-    qps=io.read("*all")
+    qps=tonumber(io.read("*all"))
     io.close(qpsfile)
-    if qps == "" then qps=0 end
+    if (qps=="nil" or qps=="") then qps=0 end
     if qps > best_qps then
       writebestqps(individual,qps)
       best_qps=qps
     end
     local timefile=assert(io.open("gaai.time","r"))
     io.input(timefile)
-    time=io.read("*all")
+    time=tonumber(io.read("*all"))
     io.close(timefile)
-    if time == "" then time=0 end
+    if (time=="nil" or time=="") then time=0 end
     if (qps==0 or time==0) then
       log("Error: qps==0 and time==0, retrying to read gaai.qps and gaai.time, please check disk/run status")
     end
