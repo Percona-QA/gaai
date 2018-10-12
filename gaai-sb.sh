@@ -1,3 +1,6 @@
+#!/bin/bash
+# Created by Roel Van de Paar, Percona LLC
+
 if [ "$6" != "gaai-sb" ]; then
   echo "This script is not supposed to be run directly. Instead, start gaai.sh after configuring the user configurable variables within it"
 else

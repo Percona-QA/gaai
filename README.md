@@ -39,5 +39,6 @@ CTRL+C the running process, then execute
 
 Thank you credits
 * Percona, the great company I work for
-* My Family, for always allowing me time
+* My colleagues, who are always helpful
+* My family, for always allowing me time
 * My Heavenly Father, for all I have and am

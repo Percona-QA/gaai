@@ -1,5 +1,5 @@
 -- gaai: Genetic Algorithm Artificial Intelligence Database Perfomance Tuning
--- Original Genetic Algorithm: Copyright (c) 2017 Jérémy (Original Genetic Algorithm, MIT Licensed; ref LICENSE-OGA)
+-- Original Genetic Algorithm: Copyright (c) 2017 Jérémy (Original Genetic Algorithm, MIT Licensed; ref LICENSE-OGA file)
 --   Ref https://github.com/Mimyka/Genetic-Algorithm-Lua (revision: ccda781857b169aba54891f37f37a288636bead0)
 -- Modified work Copyright (c) 2018 Roel Van de Paar, Percona LLC (Improvements, Database Performance Tuning, etc., GPLv2 Licensed)
 
