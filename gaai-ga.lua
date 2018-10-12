@@ -263,7 +263,7 @@ end
 
 -- Sysbench init
 function thread_init(thread_id)
-  sleep(sleep-time)    -- Warmup time
+  sleep(sleep_time)    -- Warmup time
   -- print(thread_id)  -- 0
 end
 
