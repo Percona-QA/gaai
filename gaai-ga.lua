@@ -19,6 +19,14 @@ MID_CHROMOSOME_LENGTH=math.ceil(CHROMOSOME_LENGTH/2)
 
 math.randomseed(os.time()*os.clock())  -- Random entropy pool init
 
+local function log(text)
+  print(text)
+  local logfile=assert(io.open("gaai-ga.log","a"))
+  io.output(logfile)
+  io.write(text)
+  io.close(qpsfile)
+end
+
 local function randit(gene)
   -- Genes list
 
@@ -49,7 +57,7 @@ local function randit(gene)
   elseif gene==11 then return math.random(1,200)
   elseif gene==12 then return math.random(0,50)
   elseif gene==13 then return math.random(0,5)  -- Values are stored in decimal here, but when being used, it will use text values
-  else print('Assert: gene is not between 1 and 13: gene='..gene); os.exit()
+  else log('Assert: gene is not between 1 and 13: gene='..gene); os.exit()
   end
 end
 
@@ -97,24 +105,32 @@ local function get_individual_solution(individual)
       elseif rsel==3 then query=prefix.."innodb_change_buffering=changes;"
       elseif rsel==4 then query=prefix.."innodb_change_buffering=purges;"
       elseif rsel==5 then query=prefix.."innodb_change_buffering=all;"
-      else print('Assert: gene 14 does not have a value between 1 and 5: value='..rsel); os.exit()
+      else log('Assert: gene 14 does not have a value between 1 and 5: value='..rsel); os.exit()
       end
-    else print('Assert: gene is not between 1 and 13: gene='..gene); os.exit()
+    else log('Assert: gene is not between 1 and 13: gene='..gene); os.exit()
     end
     db_query(query)
     -- print(query)  # Debugging
   end
-  -- Now that all genes are set, wait 5 seconds before measuring current service performance
-  sleep(5)
+  -- Now that all genes are set, wait 7 seconds before measuring current service performance
+  sleep(7)
   os.execute("./gaai-wd.sh gaai-wd")
-  local qpsfile=assert(io.open(gaai.qps,"r"))
+  local qpsfile=assert(io.open("gaai.qps","r"))
+  io.input(qpsfile)
   qps=io.read("*number")
-  io.close(qpsfile)  -- Close it to avoid conflicts with the watchdog writer  TODO: not fully writer thread safe, some mutex needed
-  return qps  -- the outcome of this configuration
+  io.close(qpsfile)
+  local timefile=assert(io.open("gaai.time","r"))
+  io.input(timefile)
+  time=io.read("*number")
+  io.close(timefile)
+  return qps,time  -- the outcome of this configuration
 end
 
-local function get_individual_fitness(individual)  -- Evaluate the fitness of an individual and return it
-  local offset=math.abs(EXPECTED_RESULT-get_individual_solution(individual))
+-- Evaluate the fitness of an individual and return it
+local function get_individual_fitness(individual,individual_nr,generation_count) 
+  local solution,time=get_individual_solution(individual)
+  log('Generation: '..generation_count..' | Individual: '..individual_nr..'/'..POPULATION_COUNT..' | Outcome: '..solution..' | Time: '..time..'s')
+  local offset=math.abs(EXPECTED_RESULT-solution)
   if offset==0 then 
     return 1  -- Perfect solution, there is no offset (and div-by-0 is not possible)
   else
@@ -122,21 +138,21 @@ local function get_individual_fitness(individual)  -- Evaluate the fitness of an
   end 
 end
 
-local function grade_population(population)
+local function grade_population(population,generation_count)
   -- Evaluate fitness of population
   local graded_population={}
   for individual=1,#population do
     graded_population[individual]={}
     graded_population[individual][1]=population[individual]
-    graded_population[individual][2]=get_individual_fitness(population[individual])
+    graded_population[individual][2]=get_individual_fitness(population[individual],individual,generation_count)  -- 2nd/3rd var: just counters passed for debug output, can be removed if log() (i.e. the output) in get_individual_fitness is removed
   end
   table.sort(graded_population, function(a,b) return a[2] > b[2] end)
   return graded_population
 end
 
-local function evolve_population (population)
+local function evolve_population (population,generation_count)
   -- Select almost best and a few random individual, crossover and mutate them
-  local graded_population=grade_population(population)
+  local graded_population=grade_population(population,generation_count)
 
   -- Select individuals to retain/reproduce in new generation
   local parents={}
@@ -193,7 +209,7 @@ local function evolve_population (population)
   end
 
   -- Regrade the entire population (due to the code optimization above the parents+new children are in the parents array)
-  graded_population=grade_population(parents)
+  graded_population=grade_population(parents,generation_count)
 
   local average_grade=0
   for individual=1,#graded_population do
@@ -214,17 +230,17 @@ function event(thread_id)
   -- print(thread_id)  # 0
   local population=create_random_population()
   local graded_population
-  local actual_generation=0
   local average_grade=false
+  local generation_count=0
   -- Main loop and print result
-  while (actual_generation < GENERATION_COUNT) do
-    population, average_grade, graded_population=evolve_population(population)
-    actual_generation=actual_generation + 1
-    print('['..actual_generation.." gen] - Average grade : "..average_grade.." (best:".. graded_population[1][2] .."|worst:".. graded_population[#graded_population][2] ..")")
+  while (generation_count < GENERATION_COUNT) do
+    population, average_grade, graded_population=evolve_population(population,generation_count)
+    generation_count=generation_count + 1
+    log('['..generation_count.." gen] - Average grade : "..average_grade.." (best:".. graded_population[1][2] .."|worst:".. graded_population[#graded_population][2] ..")")
   end
-
-  print('-- Top solution -> '..EXPECTED_RESULT..'='..get_individual_solution(graded_population[1][1]))
-  print('Run took '..os.clock().."s")
+  local solution,time=get_individual_solution(graded_population[1][1])
+  log('-- Top solution -> '..solution..' qps after '..time..'s runtime')
+  log('Run took '..os.clock()..'s')
   os.exit()
 end
 

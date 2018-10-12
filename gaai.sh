@@ -8,9 +8,9 @@
 #BASEDIR=/sdc/MS101018-mysql-5.7.23-linux-x86_64-opt
 BASEDIR=/dev/shm/MS101018-mysql-5.7.23-linux-x86_64-opt
 PERCONAQADIR=/home/roel/percona-qa
-REPORT_INTERVAL=2
+REPORT_INTERVAL=1
 TABLESIZE=1000000  # 10000000
-NROFTABLES=4       # 10
+NROFTABLES=5       # 10
 THREADS=5
 MYSQLD_PRECONFIG="--innodb-buffer-pool-size=5242880 --table-open-cache=1 --innodb-io-capacity=100 --innodb-io-capacity-max=100000 --innodb-thread-concurrency=1 --innodb-concurrency-tickets=1 --innodb-flush-neighbors=2 --innodb-log-write-ahead-size=512 --innodb-lru-scan-depth=100 --innodb-random-read-ahead=1 --innodb-read-ahead-threshold=0 --innodb-commit-concurrency=1 --innodb-change-buffer-max-size=0 --innodb-change-buffering=none"
 
@@ -52,13 +52,17 @@ cd ${SOURCEDIR}
 ulimit -u 10000
 ulimit -n 10000
 
+# Cleanup
+rm -f gaai-sb.log.old gaai.qps gaai.time gaai-ga.log
+mv gaai-sb.log gaai-sb.log.old
+
 # Sysbench Prepare (creates tables)
 sysbench /usr/share/sysbench/oltp_insert.lua --mysql-storage-engine=innodb --table-size=${TABLESIZE} --tables=${NROFTABLES} --mysql-db=test --mysql-user=root --db-driver=mysql --mysql-socket=${BASEDIR}/socket.sock prepare
 
 # Setup Background Sysbench Run (writes qps output ever ${REPORT_INTERVAL} seconds to gaai-sb.log in sysbench output format)
-rm -f gaai-sb.log
 script -q -f gaai-sb.log -c "./gaai-sb.sh ${REPORT_INTERVAL} ${THREADS} ${TABLESIZE} ${NROFTABLES} ${BASEDIR} gaai-sb" &
 
 # Genetic Algorithm Artificial Intelligence Database Performance Tuning (actual optimization using gaai.qps as input for the GA)
 # This uses sysbench as the lua interpreter only because it makes it easy to connect to the already running MySQL server
-#sysbench ./gaai.lua --mysql-db=test --mysql-user=root --db-driver=mysql --threads=1 --time=0 --verbosity=3 --mysql-socket=${BASEDIR}/socket.sock run
+sleep 10  # Warmup
+sysbench ./gaai-ga.lua --mysql-db=test --mysql-user=root --db-driver=mysql --threads=1 --time=0 --verbosity=3 --mysql-socket=${BASEDIR}/socket.sock run
