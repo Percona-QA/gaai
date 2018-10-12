@@ -4,9 +4,11 @@ else
   while true; do 
     while true; do
       INPUT=$(tail -n1 gaai-sb.log)
-      if [[ "${INPUT}" == *"qps:"* ]]; then
-        if [[ "${INPUT}" == *"(r/w/o:"* ]]; then
-          break
+      if [ "${INPUT}" != "" ]; then 
+        if [[ "${INPUT}" == *"qps:"* ]]; then
+          if [[ "${INPUT}" == *"(r/w/o:"* ]]; then
+            break
+          fi
         fi
       fi
       sleep 0.05

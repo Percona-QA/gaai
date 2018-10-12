@@ -1,0 +1,1 @@
+sysbench ./gaai.lua --mysql-db=test --mysql-user=root --db-driver=mysql --threads=1 --time=0 --verbosity=1 --mysql-socket=/dev/shm/MS101018-mysql-5.7.23-linux-x86_64-opt/socket.sock run | grep -v 'endless test'

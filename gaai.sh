@@ -12,7 +12,7 @@ REPORT_INTERVAL=2
 TABLESIZE=1000000  # 10000000
 NROFTABLES=4       # 10
 THREADS=5
-MYSQLD_PRECONFIG="--innodb-buffer-pool-size=5242880 --innodb-buffer-pool-chunk-size=1048576 --table-open-cache=1 --innodb-io-capacity=100 --innodb-io-capacity-max=100000 --innodb-thread-concurrency=1 --innodb-concurrency-tickets=1 --innodb-flush-neighbors=2 --innodb-log-write-ahead-size=512 --innodb-lru-scan-depth=100 --innodb-random-read-ahead=1 --innodb-read-ahead-threshold=0 --innodb-commit-concurrency=1 --innodb-change-buffer-max-size=0 --innodb-change-buffering=none"
+MYSQLD_PRECONFIG="--innodb-buffer-pool-size=5242880 --table-open-cache=1 --innodb-io-capacity=100 --innodb-io-capacity-max=100000 --innodb-thread-concurrency=1 --innodb-concurrency-tickets=1 --innodb-flush-neighbors=2 --innodb-log-write-ahead-size=512 --innodb-lru-scan-depth=100 --innodb-random-read-ahead=1 --innodb-read-ahead-threshold=0 --innodb-commit-concurrency=1 --innodb-change-buffer-max-size=0 --innodb-change-buffering=none"
 
 if [ ! -r $PERCONAQADIR/startup.sh ]; then
   echo "Assert: could not locate startup.sh in PERCONAQADIR (set to $PERCONAQADIR), please fetch percona-qa like this;"
@@ -58,10 +58,6 @@ sysbench /usr/share/sysbench/oltp_insert.lua --mysql-storage-engine=innodb --tab
 # Setup Background Sysbench Run (writes qps output ever ${REPORT_INTERVAL} seconds to gaai-sb.log in sysbench output format)
 rm -f gaai-sb.log
 script -q -f gaai-sb.log -c "./gaai-sb.sh ${REPORT_INTERVAL} ${THREADS} ${TABLESIZE} ${NROFTABLES} ${BASEDIR} gaai-sb" &
-
-# Setup Background Watchdog (reads gaai-sb.log generated above and writes last (i.e. approximately current) qps status to gaai.qps)
-rm -f gaai.qps
-./gaai-wd.sh gaai-wd &
 
 # Genetic Algorithm Artificial Intelligence Database Performance Tuning (actual optimization using gaai.qps as input for the GA)
 # This uses sysbench as the lua interpreter only because it makes it easy to connect to the already running MySQL server

@@ -10,7 +10,7 @@ GRADED_RETAIN_PERCENT   =0.25     -- How much % to retain after chromosones have
 NONGRATED_RETAIN_PERCENT=0.05     -- How much % to retain of random individuals not in the top GRADED_RETAIN_PERCENT retained group
 POPULATION_COUNT        =100      -- Made up individuals (i.e. chromosones) which in turn are made up of genes (i.e. tuning params)
 GENERATION_COUNT        =100      -- How many generations (cycles)
-CHROMOSOME_LENGTH       =14       -- How many parameters to tune, i.e. how many genes (note: gene 0-13=14 genes)
+CHROMOSOME_LENGTH       =13       -- How many parameters to tune, i.e. how many genes (note: gene 0-13=14 genes)
 FAST_CONVERGENCE        =true     -- Fast convergence is ideal for intensive/slow optimization issues, but may hit local maxima
 
 -- Internal variables, do not change
@@ -23,7 +23,6 @@ local function randit(gene)
   -- Genes list
 
   --innodb-buffer-pool-size(5242880,1073741824)       -- 5MB to 1GB     (Start: 5MB ) Gene:1
-  --innodb-buffer-pool-chunk-size(1048576,268435456)  -- 1MB to 256MB   (Start: 1MB ) Gene:2
   --table-open-cache(1,100)                           -- 1 to 100       (Start: 1   ) Gene:3
   --innodb-io-capacity(100,100000)                    -- 100 to 100000  (Start: 100 ) Gene:4 
   --innodb-thread-concurrency(1,20)                   -- 1 to 20        (Start: 1   ) Gene:5
@@ -38,20 +37,19 @@ local function randit(gene)
   --innodb-change-buffering(none,inserts,deletes,changes,purges,all)    (Start: none) Gene:14 (mapped 0-5)
 
   if     gene==1  then return math.random(5242880,1073741824)
-  elseif gene==2  then return math.random(1048576,268435456)
-  elseif gene==3  then return math.random(1,100)
-  elseif gene==4  then return math.random(100,100000)
-  elseif gene==5  then return math.random(1,20) 
-  elseif gene==6  then return math.random(1,5000)
-  elseif gene==7  then return math.random(0,2)
-  elseif gene==8  then return math.random(512,16384)
-  elseif gene==9  then return math.random(100,2048)
-  elseif gene==10 then return math.random(0,1)
-  elseif gene==11 then return math.random(0,64)
-  elseif gene==12 then return math.random(1,200)
-  elseif gene==13 then return math.random(0,50)
-  elseif gene==14 then return math.random(0,5)  -- Values are stored in decimal here, but when being used, it will use text values
-  else print('Assert: gene is not between 1 and 14: gene='..gene); os.exit()
+  elseif gene==2  then return math.random(1,100)
+  elseif gene==3  then return math.random(100,100000)
+  elseif gene==4  then return math.random(1,20) 
+  elseif gene==5  then return math.random(1,5000)
+  elseif gene==6  then return math.random(0,2)
+  elseif gene==7  then return math.random(512,16384)
+  elseif gene==8  then return math.random(100,2048)
+  elseif gene==9  then return math.random(0,1)
+  elseif gene==10 then return math.random(0,64)
+  elseif gene==11 then return math.random(1,200)
+  elseif gene==12 then return math.random(0,50)
+  elseif gene==13 then return math.random(0,5)  -- Values are stored in decimal here, but when being used, it will use text values
+  else print('Assert: gene is not between 1 and 13: gene='..gene); os.exit()
   end
 end
 
@@ -77,38 +75,42 @@ local function create_random_population()  -- Return table of @POPULATION_COUNT 
 end
 
 local function get_individual_solution(individual)
-  for gene=1, CHROMOSOME_LENGTH do
+  for gene=1, CHROMOSOME_LENGTH do  -- One by one, set each mysqld setting using the genes of the individual for testing
     prefix="SET @@GLOBAL."
-    if     gene==1  then query=prefix.."innodb-buffer-pool-size="..individual[gene]
-    elseif gene==2  then query=prefix.."innodb-buffer-pool-chunk-size="..individual[gene]
-    elseif gene==3  then query=prefix.."table-open-cache="..individual[gene]
-    elseif gene==4  then query=prefix.."innodb-io-capacity="..individual[gene]
-    elseif gene==5  then query=prefix.."innodb-thread-concurrency="..individual[gene]
-    elseif gene==6  then query=prefix.."innodb-concurrency-tickets="..individual[gene]
-    elseif gene==7  then query=prefix.."innodb-flush-neighbors="..individual[gene]
-    elseif gene==8  then query=prefix.."innodb-log-write-ahead-size="..individual[gene]
-    elseif gene==9  then query=prefix.."innodb-lru-scan-depth="..individual[gene]
-    elseif gene==10 then query=prefix.."innodb-random-read-ahead="..individual[gene]
-    elseif gene==11 then query=prefix.."innodb-read-ahead-threshold="..individual[gene]
-    elseif gene==12 then query=prefix.."innodb-commit-concurrency="..individual[gene]
-    elseif gene==13 then query=prefix.."innodb-change-buffer-max-size="..individual[gene]
-    elseif gene==14 then 
-      rsel=individual[i]
-      if     rsel==0 then query=prefix.."innodb-change-buffering=none"
-      elseif rsel==1 then query=prefix.."innodb-change-buffering=inserts"
-      elseif rsel==2 then query=prefix.."innodb-change-buffering=deletes"
-      elseif rsel==3 then query=prefix.."innodb-change-buffering=changes"
-      elseif rsel==4 then query=prefix.."innodb-change-buffering=purges"
-      elseif rsel==5 then query=prefix.."innodb-change-buffering=all"
-      else print('Assert: gene 14 does not have a value between 1 and 5: valuee='..rsel); os.exit()
+    if     gene==1  then query=prefix.."innodb_buffer_pool_size="..individual[gene]..";"
+    elseif gene==2  then query=prefix.."table_open_cache="..individual[gene]..";"
+    elseif gene==3  then query=prefix.."innodb_io_capacity="..individual[gene]..";"
+    elseif gene==4  then query=prefix.."innodb_thread_concurrency="..individual[gene]..";"
+    elseif gene==5  then query=prefix.."innodb_concurrency_tickets="..individual[gene]..";"
+    elseif gene==6  then query=prefix.."innodb_flush_neighbors="..individual[gene]..";"
+    elseif gene==7  then query=prefix.."innodb_log_write_ahead_size="..individual[gene]..";"
+    elseif gene==8  then query=prefix.."innodb_lru_scan_depth="..individual[gene]..";"
+    elseif gene==9  then query=prefix.."innodb_random_read_ahead="..individual[gene]..";"
+    elseif gene==10 then query=prefix.."innodb_read_ahead_threshold="..individual[gene]..";"
+    elseif gene==11 then query=prefix.."innodb_commit_concurrency="..individual[gene]..";"
+    elseif gene==12 then query=prefix.."innodb_change_buffer_max_size="..individual[gene]..";"
+    elseif gene==13 then
+      rsel=individual[gene]
+      if     rsel==0 then query=prefix.."innodb_change_buffering=none;"
+      elseif rsel==1 then query=prefix.."innodb_change_buffering=inserts;"
+      elseif rsel==2 then query=prefix.."innodb_change_buffering=deletes;"
+      elseif rsel==3 then query=prefix.."innodb_change_buffering=changes;"
+      elseif rsel==4 then query=prefix.."innodb_change_buffering=purges;"
+      elseif rsel==5 then query=prefix.."innodb_change_buffering=all;"
+      else print('Assert: gene 14 does not have a value between 1 and 5: value='..rsel); os.exit()
       end
-    else print('Assert: gene is not between 1 and 14: gene='..gene); os.exit()
+    else print('Assert: gene is not between 1 and 13: gene='..gene); os.exit()
     end
-    print(query)
+    db_query(query)
+    -- print(query)  # Debugging
   end
-  local solution=0
-  --solution=solution+individual[i]
-  return solution
+  -- Now that all genes are set, wait 5 seconds before measuring current service performance
+  sleep(5)
+  os.execute("./gaai-wd.sh gaai-wd")
+  local qpsfile=assert(io.open(gaai.qps,"r"))
+  qps=io.read("*number")
+  io.close(qpsfile)  -- Close it to avoid conflicts with the watchdog writer  TODO: not fully writer thread safe, some mutex needed
+  return qps  -- the outcome of this configuration
 end
 
 local function get_individual_fitness(individual)  -- Evaluate the fitness of an individual and return it
@@ -214,7 +216,6 @@ function event(thread_id)
   local graded_population
   local actual_generation=0
   local average_grade=false
-  -- db_query("SELECT 1")
   -- Main loop and print result
   while (actual_generation < GENERATION_COUNT) do
     population, average_grade, graded_population=evolve_population(population)
@@ -227,3 +228,7 @@ function event(thread_id)
   os.exit()
 end
 
+function sleep(s)  -- With thanks, http://lua-users.org/wiki/SleepFunction
+  local ntime = os.clock() + s
+  repeat until os.clock() > ntime
+end
