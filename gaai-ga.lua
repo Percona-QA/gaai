@@ -151,7 +151,7 @@ local function get_individual_result(individual)
     db_query(query)
     -- print(query)  -- Debugging
   end
-  -- Now that all genes are set, wait 7 seconds before measuring current service performance
+  -- Now that all genes are set, wait the configured amount of time before measuring current service performance
   sleep(measure_delay)
   qps=0
   time=0
